@@ -5,8 +5,14 @@ from PyQt5.QtGui import QIcon, QFont, QCursor, QPixmap
 import csv
 import datetime
 from PyQt5.QtCore import pyqtSlot, Qt, QPoint, QDir
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas, \
+    NavigationToolbar2QT as NavigationToolbar
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 from qiskit import *
 # from functionpool import savedPara
+from qiskit.visualization import plot_histogram
+
 now = datetime.datetime.now()
 
 
@@ -36,19 +42,20 @@ class MainGui(QMainWindow):
 class Applet(QWidget):
     def __init__(self):
         super(Applet, self).__init__()
-        self.columns = 10
         self.initapplet()
-        self.calcs = QZenoEffectCalcs()
-        self.sliders = self.sliderN()
-        self.pics = self.figures(self.N)
-        self.exp = self.experiment()
+
 
 
 
     def initapplet(self):
 
         self.grid = QVBoxLayout()
+        self.calcs = QZenoEffectCalcs()
+        self.sliders = self.sliderN()
+        self.pics = self.figures(self.N)
+        self.exp = self.experiment()
         # self.type = self.exptype()
+        self.plot = WidgetPlot() #initialising the widget plot class
 
         self.grid.addWidget(self.sliders)
         self.grid.addWidget(self.exp)
@@ -60,6 +67,7 @@ class Applet(QWidget):
         self.layout = QHBoxLayout()
         self.layout.addWidget(self.box)
         self.layout.addWidget(self.pics)
+        self.layout.addWidget(self.plot)
 
         self.setLayout(self.layout)
 
@@ -85,7 +93,7 @@ class Applet(QWidget):
 
         groupbox = QGroupBox()
         groupbox.setLayout(layout)
-        groupbox.setTitle("Instrument Parameters")
+        groupbox.setTitle("Experiment Parameters")
 
         reflectlbl = QLabel('Reflectivity of Beamsplitters')
 
@@ -99,7 +107,7 @@ class Applet(QWidget):
 
         groupbox = QGroupBox()
         groupbox.setStyleSheet('background-color: white;')
-        groupbox.setFixedWidth(1000)
+        groupbox.setFixedWidth(600)
         layout = QVBoxLayout()
 
         horizlayout1 = QHBoxLayout()
@@ -168,7 +176,7 @@ class Applet(QWidget):
         layout = QGridLayout()
         box = QGroupBox()
         box.setLayout(layout)
-        box.setTitle('Experiment Parameters')
+        # box.setTitle('')
 
         layout.addWidget(nphotonslbl, 0, 0)
         layout.addWidget(self.nphotons,1,0)
@@ -204,6 +212,12 @@ class Applet(QWidget):
 
         return box
 
+    def results(self):
+        box = QGroupBox()
+        layout = QGridLayout()
+
+
+
     # def objectexist(self):
     #
 
@@ -232,6 +246,13 @@ class Applet(QWidget):
         if type.text() == 'Not Present':
             if type.isChecked() ==True:
                 self.objtype = 0
+    def on_thread_done(self, data):
+        self.data = data #sets data to a global variable so we can call it in other functions
+        self.plot.plot(data) #uses the QWidget class for plotting
+        # result = execute(circuit, backend=self.backend, shots=1024).result()
+        # counts = result.get_counts()
+        # from qiskit.tools.visualization import plot_histogram
+        # plot_histogram(counts)
 
 
 class QZenoEffectCalcs():
@@ -274,7 +295,37 @@ class QZenoEffectCalcs():
         return result, counts, ntrans, pct, predict
 
 
+class PlotCanvas(FigureCanvas): #this creates a matplotlib canvas and defines some plotting aspects
 
+    def __init__(self, parent=None):
+        fig = Figure()
+        self.axes = fig.add_subplot(111)
+        FigureCanvas.__init__(self, fig)
+        self.setParent(parent)
+
+        FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
+        FigureCanvas.updateGeometry(self)
+
+    def plot(self, data):
+        plot_histogram(data)
+        self.axes.set_title('Histogram of Measured States')
+        self.draw()
+
+
+class WidgetPlot(QWidget): #this converts the matplotlib canvas into a qt5 widget so we can implement it in the qt
+    # framework laid out above
+    def __init__(self, *args, **kwargs):
+        QWidget.__init__(self, *args, **kwargs)
+        self.setLayout(QVBoxLayout())
+        self.canvas = PlotCanvas(self)
+        self.layout().addWidget(self.canvas)
+        self.setFixedWidth(600)
+
+
+    def plot(self, data):
+        self.canvas.axes.clear() #it is important to clear out the plot first or everything just gets plotted on top of
+        # each other and it becomes useless
+        self.canvas.plot(data)
 
 
 if __name__ == '__main__':
