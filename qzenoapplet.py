@@ -48,11 +48,14 @@ class Applet(QWidget):
 
 
     def initapplet(self):
+        self.objtype = 1
+
 
         self.grid = QVBoxLayout()
         self.calcs = QZenoEffectCalcs()
         self.sliders = self.sliderN()
         self.pics = self.figures(self.N)
+        self.resultsbox = self.results()
         self.exp = self.experiment()
         # self.type = self.exptype()
         self.plot = WidgetPlot() #initialising the widget plot class
@@ -65,9 +68,14 @@ class Applet(QWidget):
         self.box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
         self.layout = QHBoxLayout()
+
+        self.resultslay = QVBoxLayout()
+        self.resultslay.addWidget(self.resultsbox)
+        self.resultslay.addWidget(self.plot)
+
         self.layout.addWidget(self.box)
         self.layout.addWidget(self.pics)
-        self.layout.addWidget(self.plot)
+        self.layout.addLayout(self.resultslay)
 
         self.setLayout(self.layout)
 
@@ -210,12 +218,34 @@ class Applet(QWidget):
 
         layout.addWidget(objbox, 6, 0, 2, 1)
 
+        self.runbtn = QPushButton('Run Simulation')
+        layout.addWidget(self.runbtn, 8, 0)
+        self.runbtn.clicked.connect(self.on_click_runsim)
+
         return box
 
     def results(self):
         box = QGroupBox()
         layout = QGridLayout()
+        label = QLabel('Experiment Results')
+        self.ntranslbl = QLabel('Number Transmited:')
+        self.ntransnum = QLabel('')
+        self.pcttranslbl = QLabel('Percent Transmitted:')
+        self.pcttransnum = QLabel('')
+        self.theorylbl = QLabel('Theoretical Prediction Percent:')
+        self.theorynum = QLabel('')
 
+        box.setLayout(layout)
+        layout.addWidget(label, 0, 0,)
+        layout.addWidget(self.ntranslbl, 1, 0)
+        layout.addWidget(self.ntransnum, 1, 1)
+        layout.addWidget(self.pcttranslbl, 2, 0)
+        layout.addWidget(self.pcttransnum, 2, 1)
+        layout.addWidget(self.theorylbl, 3, 0)
+        layout.addWidget(self.theorynum, 3, 1)
+
+
+        return box
 
 
     # def objectexist(self):
@@ -235,29 +265,51 @@ class Applet(QWidget):
         if type.text() == 'Beamsplitters':
             if type.isChecked() ==True:
                 self.exptype = 1
+                print('Beamsplitters', self.exptype)
         if type.text() == 'Polarizers':
             if type.isChecked() ==True:
+                print('Polarizers', self.exptype)
                 self.exptype = 0
 
     def objtypechange(self, type):
         if type.text() == 'Present':
             if type.isChecked() ==True:
                 self.objtype = 1
+                print('Present', self.objtype)
         if type.text() == 'Not Present':
             if type.isChecked() ==True:
                 self.objtype = 0
+                print('Not present', self.objtype)
     def on_thread_done(self, data):
         self.data = data #sets data to a global variable so we can call it in other functions
         self.plot.plot(data) #uses the QWidget class for plotting
         # result = execute(circuit, backend=self.backend, shots=1024).result()
         # counts = result.get_counts()
-        # from qiskit.tools.visualization import plot_histogram
-        # plot_histogram(counts)
+
+    def on_click_runsim(self):
+
+        if self.objtype ==1:
+            n = int(self.nphotons.text())
+            result, counts, ntrans, pct, predict = self.calcs.measure(n, self.N, 1)
+
+
+        if self.objtype ==0:
+            n = int(self.nphotons.text())
+            result, counts, ntrans, pct, predict = self.calcs.measure(n, self.N, 0)
+            from qiskit.tools.visualization import plot_histogram
+            self.plot.plot(counts)
+
+        self.ntransnum.setText(str(ntrans))
+        self.theorynum.setText(str(predict))
+        self.pcttransnum.setText(str(pct))
+
+
 
 
 class QZenoEffectCalcs():
     def theta(self, N):
         theta = np.pi/N
+        # print('theta = ', theta)
         return theta
 
     def transmitpredict(self, obj, N):
@@ -270,29 +322,49 @@ class QZenoEffectCalcs():
 
     def zenocirc(self, N, obj):
         theta = self.theta(N)
+        if obj == 1 :
+            q = QuantumRegister(1)
+            c = ClassicalRegister(N)
+            circuit = QuantumCircuit(q,c)
+            for i in range(N):
+                circuit.rx(theta, q[0])
+                circuit.measure(q[0], c[i])
 
-        q = QuantumRegister(1)
-        c = ClassicalRegister(N)
-        circuit = QuantumCircuit(q,c)
-        for i in range(N):
-            circuit.rx(theta, q[0])
-            circuit.measure(q[0], c[i])
-
+        if obj == 0:
+            q = QuantumRegister(1)
+            c = ClassicalRegister(1)
+            circuit = QuantumCircuit(q,c)
+            for i in range(N):
+                circuit.rx(theta, q[0])
+                circuit.measure(q[0], c[0])
+        # print(circuit)
         return circuit
 
     def measure(self, nphotons, N, obj):
-        circuit = self.zenocirc(N)
+        self.backend = Aer.get_backend('qasm_simulator')
+        # print('backend set')
+        circuit = self.zenocirc(N, obj)
+        # print('circuit made')
         endstate = '0' * N
+        # print('endstate set')
 
         result = execute(circuit, backend=self.backend, shots=nphotons).result()
+        # print('simulation done')
         counts = result.get_counts()
         ntrans = counts.get(endstate)
+        if counts.get(endstate) == None:
+            ntrans = 0
+        # print('photons=',nphotons)
+        # print('transmitted=', ntrans)
         pct = ntrans/nphotons
+
         predict = self.transmitpredict(obj, N)
-        fname = 'circuit.png_'+N
-        circuit.draw(filename=fname, output='mpl')
+        # fname = 'circuit.png_'+N
+        # circuit.draw(filename=fname, output='mpl')
+        # print(result, counts, ntrans, pct, predict)
 
         return result, counts, ntrans, pct, predict
+
 
 
 class PlotCanvas(FigureCanvas): #this creates a matplotlib canvas and defines some plotting aspects
