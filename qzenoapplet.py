@@ -49,9 +49,10 @@ class Applet(QWidget):
 
     def initapplet(self):
         self.objtype = 1
+        self.exptype = 1
 
 
-        self.grid = QVBoxLayout()
+        self.vlay = QVBoxLayout()
         self.calcs = QZenoEffectCalcs()
         self.sliders = self.sliderN()
         self.pics = self.figures(self.N)
@@ -60,28 +61,28 @@ class Applet(QWidget):
         # self.type = self.exptype()
         self.plot = WidgetPlot() #initialising the widget plot class
 
-        self.grid.addWidget(self.sliders)
-        self.grid.addWidget(self.exp)
+        self.vlay.addWidget(self.sliders)
+        self.vlay.addWidget(self.exp)
         # self.grid.addWidget(self.type)
         self.box = QGroupBox()
-        self.box.setLayout(self.grid)
+        self.box.setLayout(self.vlay)
         self.box.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
 
-        self.layout = QHBoxLayout()
+        self.layout = QGridLayout()
 
         self.resultslay = QVBoxLayout()
         self.resultslay.addWidget(self.resultsbox)
         self.resultslay.addWidget(self.plot)
 
-        self.layout.addWidget(self.box)
-        self.layout.addWidget(self.pics)
-        self.layout.addLayout(self.resultslay)
+        self.layout.addWidget(self.box, 0, 0,)
+        self.layout.addWidget(self.pics, 0, 1)
+        self.layout.addLayout(self.resultslay, 0, 2)
 
         self.setLayout(self.layout)
 
     def sliderN(self):
         self.slider = QSlider(Qt.Horizontal)
-        self.slider.setMinimum(1)
+        self.slider.setMinimum(2)
         self.slider.setMaximum(10000)
         self.N = self.slider.value()
 
@@ -115,7 +116,7 @@ class Applet(QWidget):
 
         groupbox = QGroupBox()
         groupbox.setStyleSheet('background-color: white;')
-        groupbox.setFixedWidth(600)
+        groupbox.setFixedWidth(650)
         layout = QVBoxLayout()
 
         horizlayout1 = QHBoxLayout()
@@ -125,55 +126,45 @@ class Applet(QWidget):
         layout.addLayout(horizlayout1)
 
 
-        fname = 'mirror.png'
-        pix = QPixmap(fname)
+
         if N < 6:
-            for i in range(N):
-                beamsplitter_i = QLabel()
-                beamsplitter_i.setPixmap(pix)
-                horizlayout1.addWidget(beamsplitter_i)
+            if self.exptype == 1:
+                if self.objtype ==1 :
+                    fname = 'figures_zeno/'+str(N)+'beamsplitter_object_combined.png'
+                    pix = QPixmap(fname)
+                    pix = pix.scaled(600, 600, Qt.KeepAspectRatio)
+
+                    beamsplitter_i = QLabel()
+                    beamsplitter_i.setPixmap(pix)
+                    horizlayout1.addWidget(beamsplitter_i)
+                if self.objtype == 0 :
+                    fname = 'figures_zeno/'+str(N)+'beamsplitter_noobject_combined.png'
+                    pix = QPixmap(fname)
+                    pix = pix.scaled(600, 600, Qt.KeepAspectRatio)
+
+                    beamsplitter_i = QLabel()
+                    beamsplitter_i.setPixmap(pix)
+                    horizlayout1.addWidget(beamsplitter_i)
 
         else:
-            for i in range(6):
-                beamsplitter_i = QLabel()
-                beamsplitter_i.setPixmap(pix)
-                horizlayout1.addWidget(beamsplitter_i)
+            if self.exptype == 1:
+                if self.objtype ==1 :
+                    fname = 'figures_zeno/Nbeamsplitter_object_combined.png'
+                    pix = QPixmap(fname)
+                    pix = pix.scaled(600, 600, Qt.KeepAspectRatio)
 
-        det = QLabel()
-        # detpic = QPixmap('detector.png')
-        det.setPixmap(QPixmap('detector.png'))
-        horizlayout1.addWidget(det)
+                    beamsplitter_i = QLabel()
+                    beamsplitter_i.setPixmap(pix)
+                    horizlayout1.addWidget(beamsplitter_i)
+                if self.objtype == 0 :
+                    fname = 'figures_zeno/Nbeamsplitter_noobject_combined.png'
+                    pix = QPixmap(fname)
+                    pix = pix.scaled(600, 600, Qt.KeepAspectRatio)
 
-        horizlayout2 = QHBoxLayout()
-        horizlayout2.setSpacing(0)
-        horizlayout2.setContentsMargins(0,0,0,0)
-        layout.addLayout(horizlayout2)
-        if N < 6:
-            circuit = self.calcs.zenocirc(N, 1)
+                    beamsplitter_i = QLabel()
+                    beamsplitter_i.setPixmap(pix)
+                    horizlayout1.addWidget(beamsplitter_i)
 
-            circuit.draw(filename='circuit.png', output='mpl')
-            cir = QLabel()
-            cirpic = QPixmap('circuit.png')
-            cirpic.scaledToWidth(500)
-            cirpic.scaledToHeight(500)
-
-            cir.setPixmap(cirpic)
-
-
-            horizlayout2.addWidget(cir)
-        else:
-            circuit = self.calcs.zenocirc(6, 1)
-
-            circuit.draw(filename='circuit.png', output='mpl')
-            cir = QLabel()
-            cirpic = QPixmap('circuit.png')
-            cirpic.scaledToWidth(500)
-            cirpic.scaledToHeight(500)
-
-            cir.setPixmap(cirpic)
-
-
-            horizlayout2.addWidget(cir)
         return groupbox
 
     def experiment(self):
@@ -248,6 +239,7 @@ class Applet(QWidget):
         return box
 
 
+
     # def objectexist(self):
     #
 
@@ -257,7 +249,7 @@ class Applet(QWidget):
         self.N = self.slider.value()
         self.layout.removeWidget(self.pics)
         self.pics = self.figures(self.N)
-        self.layout.addWidget(self.pics)
+        self.layout.addWidget(self.pics, 0, 1)
         self.reflectivity = str(round(np.pi/self.N, 4))
         self.reflectval.setText(self.reflectivity)
 
@@ -275,16 +267,18 @@ class Applet(QWidget):
         if type.text() == 'Present':
             if type.isChecked() ==True:
                 self.objtype = 1
+                self.layout.removeWidget(self.pics)
+                self.pics = self.figures(self.N)
+                self.layout.addWidget(self.pics, 0, 1)
                 print('Present', self.objtype)
+
         if type.text() == 'Not Present':
             if type.isChecked() ==True:
                 self.objtype = 0
+                self.layout.removeWidget(self.pics)
+                self.pics = self.figures(self.N)
+                self.layout.addWidget(self.pics, 0, 1)
                 print('Not present', self.objtype)
-    def on_thread_done(self, data):
-        self.data = data #sets data to a global variable so we can call it in other functions
-        self.plot.plot(data) #uses the QWidget class for plotting
-        # result = execute(circuit, backend=self.backend, shots=1024).result()
-        # counts = result.get_counts()
 
     def on_click_runsim(self):
 
@@ -373,15 +367,13 @@ class PlotCanvas(FigureCanvas): #this creates a matplotlib canvas and defines so
         fig = Figure()
         self.axes = fig.add_subplot(111)
         FigureCanvas.__init__(self, fig)
-        self.setParent(parent)
 
         FigureCanvas.setSizePolicy(self, QSizePolicy.Expanding, QSizePolicy.Expanding)
         FigureCanvas.updateGeometry(self)
 
     def plot(self, data):
-        plot_histogram(data)
+        plot_histogram(data, ax = self.axes)
         self.axes.set_title('Histogram of Measured States')
-        self.draw()
 
 
 class WidgetPlot(QWidget): #this converts the matplotlib canvas into a qt5 widget so we can implement it in the qt
@@ -391,7 +383,7 @@ class WidgetPlot(QWidget): #this converts the matplotlib canvas into a qt5 widge
         self.setLayout(QVBoxLayout())
         self.canvas = PlotCanvas(self)
         self.layout().addWidget(self.canvas)
-        self.setFixedWidth(600)
+        self.setFixedWidth(400)
 
 
     def plot(self, data):
