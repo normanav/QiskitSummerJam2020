@@ -212,7 +212,7 @@ class Ui_MainWindow(object):
         self.blochSphere.setPixmap(QtGui.QPixmap('./img0_BlochDiagram'))
 
         #initial states of electrons in the atom
-        self.atomTransition.setPixmap(QtGui.QPixmap('./img0_AtomConfig'))
+        self.atomTransition.setPixmap(QtGui.QPixmap('./Figures_entanglement/img0_AtomConfig'))
 
         self.stepDescription.setText("The qubit states denoted as |up> and |down> are encoded in the NV\n"
             "spin sub-levels m_s = 0 and m_s = -1 respectively. m_s is the spin\n"
@@ -283,7 +283,7 @@ class Ui_MainWindow(object):
             self.blochSphere.setPixmap(QtGui.QPixmap('./img1_BlochDiagram'))
             ##edited this
             #self.blochSphere.setPixmap(QtGui.QPixmap('./img1_BlochDiagram').scaled(64,64,Qt.KeepAspectRatio))
-            self.atomTransition.setPixmap(QtGui.QPixmap('./img1_AtomConfig'))
+            self.atomTransition.setPixmap(QtGui.QPixmap('./Figures_entanglement/img1_AtomConfig'))
             self.updateStepDescription("Applying a pi/2 pulse will create an equal superposition of |up> and\n"
             "|down> spins.\n"
             "It should be noted in the Bloch diagram that the arrow denoting qubit 0\n"
@@ -292,7 +292,7 @@ class Ui_MainWindow(object):
         if counter == 2:
             self.circuitDiagram.setPixmap(QtGui.QPixmap('./img2_CircuitDiagram'))
             self.blochSphere.setPixmap(QtGui.QPixmap('./img2_BlochDiagram'))
-            self.atomTransition.setPixmap(QtGui.QPixmap('./img2_AtomConfig'))
+            self.atomTransition.setPixmap(QtGui.QPixmap('./Figures_entanglement/img2_AtomConfig'))
             self.updateStepDescription("A laser pulse selectively excites the |up> spin to the excited state |e>\n"
                 "and |down> spin remains in the same level unaffected.\n" 
                 "A spontaneous emission of photon is followed which locally entangles the\n"
@@ -303,14 +303,14 @@ class Ui_MainWindow(object):
         if counter == 3:
             self.circuitDiagram.setPixmap(QtGui.QPixmap('./img3_CircuitDiagram'))
             self.blochSphere.setPixmap(QtGui.QPixmap('./img3_BlochDiagram'))
-            self.atomTransition.setPixmap(QtGui.QPixmap('./img3_AtomConfig'))
+            self.atomTransition.setPixmap(QtGui.QPixmap('./Figures_entanglement/img3_AtomConfig'))
             self.updateStepDescription("The superposition of the spin is now inverted by applying a pi pulse.\n"
                 "Note that the |up> and |down> positions are interchanged in the state\n"
                 "notation.")
         if counter == 4:
             self.circuitDiagram.setPixmap(QtGui.QPixmap('./img4_CircuitDiagram'))
             self.blochSphere.setPixmap(QtGui.QPixmap('./img4_BlochDiagram'))
-            self.atomTransition.setPixmap(QtGui.QPixmap('./img4_AtomConfig'))
+            self.atomTransition.setPixmap(QtGui.QPixmap('./Figures_entanglement/img4_AtomConfig'))
             self.updateStepDescription("A second laser pulse is used to excite the |up> spin to |e> and a\n"
                 "spontaneous emission results in a 'LATE' photon. From the state notation it\n"
                 "should be noted that for the combination of qubit 1 and 2, 10 and 01 are\n"
@@ -396,7 +396,7 @@ class Ui_MainWindow(object):
     def resetDashBoard(self):
         self.circuitDiagram.setPixmap(QtGui.QPixmap())
         self.blochSphere.setPixmap(QtGui.QPixmap('./img0_BlochDiagram'))
-        self.atomTransition.setPixmap(QtGui.QPixmap('./img0_AtomConfig'))
+        self.atomTransition.setPixmap(QtGui.QPixmap('./Figures_entanglement/img0_AtomConfig'))
         self.hideHistogramBatch()
 
 
